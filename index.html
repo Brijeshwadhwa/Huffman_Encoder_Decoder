@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🌲 Huffman Encoder / Decoder</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Courier New', Courier, monospace;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #111;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #00ff88;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00ff88;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #00ff88;
+      background: #000;
+      color: #fff;
+      resize: none;
+      font-size: 16px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #00ff88;
+      color: black;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00cc66;
+    }
+
+    .section-title {
+      color: #00ff88;
+      margin-top: 40px;
+    }
+
+    pre {
+      background-color: #111;
+      border: 1px solid #00ff88;
+      padding: 20px;
+      overflow-x: auto;
+      color: #00ff88;
+    }
+
+    code {
+      font-size: 14px;
+    }
+
+    .note {
+      margin-top: 20px;
+      font-style: italic;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌲 Huffman Encoder / Decoder</h1>
+    
+    <textarea id="inputText" placeholder="Enter text here..."></textarea>
+    
+    <div class="buttons">
+      <button onclick="encode()">Encode</button>
+      <button onclick="decode()">Decode</button>
+    </div>
+    
+    <textarea id="outputText" readonly placeholder="Output will appear here..."></textarea>
+
+    <h2 class="section-title">💡 Huffman Encoding in C++</h2>
+    <pre><code>
+#include &lt;iostream&gt;
+#include &lt;queue&gt;
+#include &lt;unordered_map&gt;
+#include &lt;string&gt;
+using namespace std;
+
+struct Node {
+    char ch;
+    int freq;
+    Node *left, *right;
+    Node(char c, int f) : ch(c), freq(f), left(nullptr), right(nullptr) {}
+};
+
+struct Compare {
+    bool operator()(Node* l, Node* r) {
+        return l-&gt;freq &gt; r-&gt;freq;
+    }
+};
+
+void buildCodes(Node* root, string str, unordered_map&lt;char, string&gt;& huffmanCode) {
+    if (!root) return;
+    if (!root-&gt;left && !root-&gt;right) huffmanCode[root-&gt;ch] = str;
+    buildCodes(root-&gt;left, str + "0", huffmanCode);
+    buildCodes(root-&gt;right, str + "1", huffmanCode);
+}
+
+void freeTree(Node* root) {
+    if (!root) return;
+    freeTree(root-&gt;left);
+    freeTree(root-&gt;right);
+    delete root;
+}
+
+string encode(const string&amp; text, unordered_map&lt;char, string&gt;& huffmanCode) {
+    string encoded;
+    for (char ch : text) {
+        encoded += huffmanCode[ch];
+    }
+    return encoded;
+}
+
+string decode(Node* root, const string&amp; encodedStr) {
+    string decoded = "";
+    Node* curr = root;
+    for (char bit : encodedStr) {
+        curr = (bit == '0') ? curr-&gt;left : curr-&gt;right;
+        if (!curr-&gt;left && !curr-&gt;right) {
+            decoded += curr-&gt;ch;
+            curr = root;
+        }
+    }
+    return decoded;
+}
+
+int main() {
+    string text = "hello huffman";
+
+    unordered_map&lt;char, int&gt; freq;
+    for (char ch : text) freq[ch]++;
+
+    priority_queue&lt;Node*, vector&lt;Node*&gt;, Compare&gt; pq;
+    for (auto pair : freq) {
+        pq.push(new Node(pair.first, pair.second));
+    }
+
+    while (pq.size() &gt; 1) {
+        Node *left = pq.top(); pq.pop();
+        Node *right = pq.top(); pq.pop();
+        Node *merged = new Node('\0', left-&gt;freq + right-&gt;freq);
+        merged-&gt;left = left;
+        merged-&gt;right = right;
+        pq.push(merged);
+    }
+
+    Node* root = pq.top();
+    unordered_map&lt;char, string&gt; huffmanCode;
+    buildCodes(root, "", huffmanCode);
+
+    string encoded = encode(text, huffmanCode);
+    string decoded = decode(root, encoded);
+
+    cout &lt;&lt; "Encoded: " &lt;&lt; encoded &lt;&lt; endl;
+    cout &lt;&lt; "Decoded: " &lt;&lt; decoded &lt;&lt; endl;
+
+    freeTree(root);
+    return 0;
+}
+    </code></pre>
+    <p class="note">📝 This is the complete C++ implementation of Huffman Coding, displayed in a visually styled block as per your reference.</p>
+  </div>
+
+  <script>
+    class Node {
+      constructor(ch, freq, left = null, right = null) {
+        this.ch = ch;
+        this.freq = freq;
+        this.left = left;
+        this.right = right;
+      }
+    }
+
+    function buildFrequencyMap(text) {
+      const freq = {};
+      for (let ch of text) {
+        freq[ch] = (freq[ch] || 0) + 1;
+      }
+      return freq;
+    }
+
+    function buildHuffmanTree(freqMap) {
+      const pq = Object.entries(freqMap).map(([ch, freq]) => new Node(ch, freq));
+      pq.sort((a, b) => a.freq - b.freq);
+      while (pq.length > 1) {
+        const left = pq.shift();
+        const right = pq.shift();
+        const merged = new Node(null, left.freq + right.freq, left, right);
+        pq.push(merged);
+        pq.sort((a, b) => a.freq - b.freq);
+      }
+      return pq[0];
+    }
+
+    function buildCodes(node, str = "", huffmanCode = {}) {
+      if (!node) return;
+      if (!node.left && !node.right) huffmanCode[node.ch] = str;
+      buildCodes(node.left, str + "0", huffmanCode);
+      buildCodes(node.right, str + "1", huffmanCode);
+      return huffmanCode;
+    }
+
+    let globalHuffmanTree = null;
+    let globalHuffmanCode = null;
+
+    function encode() {
+      const text = document.getElementById("inputText").value;
+      if (!text) return;
+
+      const freqMap = buildFrequencyMap(text);
+      globalHuffmanTree = buildHuffmanTree(freqMap);
+      globalHuffmanCode = buildCodes(globalHuffmanTree);
+
+      let encoded = "";
+      for (let ch of text) {
+        encoded += globalHuffmanCode[ch];
+      }
+
+      document.getElementById("outputText").value = encoded;
+    }
+
+    function decode() {
+      const encodedStr = document.getElementById("outputText").value;
+      if (!encodedStr || !globalHuffmanTree) return;
+
+      let decoded = "";
+      let node = globalHuffmanTree;
+
+      for (let bit of encodedStr) {
+        node = bit === "0" ? node.left : node.right;
+        if (!node.left && !node.right) {
+          decoded += node.ch;
+          node = globalHuffmanTree;
+        }
+      }
+
+      document.getElementById("outputText").value = decoded;
+    }
+  </script>
+</body>
+</html>
